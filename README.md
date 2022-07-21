@@ -35,7 +35,7 @@ I picked the LMC for a few reasons:
 There are limitations of the machine I won't go into here, but I will call out a few for my assembler. These were design decisions that are easy to change if you care to:
  - The symbol table is shared for line labels and variables. This means that you can't call a variable LOL and also label a line LOL or weird things will happen. I'll probably change this later, but I have stuff here on GitHub from a decade ago in private repos that say the same thing.
  - The symbols are case insensitive. It's easy to fix this, but with 100 memory locations, I don't think you'll have too robust of a symbol table anyway.
- - There are trailing BRK (000) opcodes. I think this is due to how I iterate memory locations but I'm not sure. Would for sure want to fix this if any programs are near the 100 cell limit.
+ - ~~There are trailing BRK (000) opcodes. I think this is due to how I iterate memory locations but I'm not sure. Would for sure want to fix this if any programs are near the 100 cell limit.~~ (Actually, these are just uninitalizaed DAT cells).
 
 
 ## Samples
