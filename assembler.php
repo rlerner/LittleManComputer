@@ -1,198 +1,83 @@
 <?php
-
-/*
-Translates "Little Man Computer" (LMC) Mnemoinics to OpCodes, handles variable names and labels, and outputs machine code.
-
-HOW TO RUN: php assembler.php [FILENAME.ASM]
-OUTPUT: FILENAME.LMC
-
-
-Example:
-
-START	BRK
-		
-END		OUT
-		HLT
-
-
-LABEL 	MNEOMNIC 	VALUE
-
-
-Variables should be defined at the end of the program (past the past BRK) as follows:
-
-Uninitalized:
-VARNAME	DAT
-
-Initalized to "1":
-
-VARNAME DAT 1
-
-
-Limitations:
-	- Line labels and variables cannot have the same name since they are stored in one mapping table and string replaced. It can be improved but nah.
-	- Variables are case-insensitive.
-	- There's always 1+ trailing BRK (000) Opcode
-
-*/
-
-
+// R.Lerner - LMC Assembler - 2022/07/20
 
 $file = file_get_contents($argv[1]);
-$file = LMCAssembler($file);
-$file = implode("\n",$file);
+$assembler = new LMCAssembler();
+$output = $assembler->assemble($file);
+$file = implode("\n",$output);
 file_put_contents(str_ireplace(".asm","",$argv[1]) . ".lmc",$file);
 
-function LMCAssembler($assembly) {
-	$assembly = explode("\n",$assembly);
-	$memoryMapper = [];
-	$memLocation = 0;
+class LMCAssembler {
+	private $address = 0;
+	private $intermediate = [];
+	private $memoryMap = [];
+	public $debug = false;
+	private $opcodes = [
+		"000" 	=> "HLT"
+		,1 		=> "ADD"
+		,2 		=> "SUB"
+		,3 		=> "STA"
+		,5 		=> "LDA"
+		,6 		=> "BRA"
+		,7 		=> "BRZ"
+		,8 		=> "BRP"
+		,"901"	=> "INP"
+		,"902"	=> "OUT"
+	];
 
-	foreach ($assembly as $row) {
-		$left = $right = "";
-		
-		// Drop off comments, replace tabs with spaces, pad each row with spaces for instruction comparison
-		$row = explode("//",$row);
-		$row = " " . str_replace("\t"," ",$row[0]) . " ";
-
-		if (stristr($row," HLT ")!==false) {
-			// Find anything to the left of the instruction as a line label
-			$left = trim(substr($row,0,stripos($row," HLT ")));
-			if ($left!="") {
-				$memoryMapper[$left] = $memLocation;
-			}
-
-			$intermediate[] = "000";
-			$memLocation++;
-		}
-
-		if (stristr($row," ADD ")!==false) {
+	private function checkRow(string $row,string $command) {
+		$row = strtoupper($row);
+		if (strstr($row," $command ")!==false) {
 			// Find anything to the left of the instruction as a line label
 			// Find anything to the right to set the memory location this will map to
-			$left = trim(substr($row,0,stripos($row," ADD ")));
-			$right = trim(substr($row,stripos($row," ADD ")+5,strlen($row)));
+			$left = trim(substr($row,0,strpos($row," $command ")));
+			$right = trim(substr($row,strpos($row," $command ")+5,strlen($row)));
 			if ($left!="") {
-				$memoryMapper[$left] = $memLocation;
+				$this->memoryMap[$left] = $this->address;
 			}
 
-			//Stores the string to the right of the instruction, padded by "%" to the right of the instruction
-			$intermediate[] = "1%$right%";
-			$memLocation++;
-		}
-
-		if (stristr($row," SUB ")!==false) {
-			$left = trim(substr($row,0,stripos($row," SUB ")));
-			$right = trim(substr($row,stripos($row," SUB ")+5,strlen($row)));
-			if ($left!="") {
-				$memoryMapper[$left] = $memLocation;
+			if ($command=="DAT") {
+				if ($left!="") {
+					$this->memoryMap[$left] = $this->address;
+					$this->intermediate[] = str_pad($right,3,"0",STR_PAD_LEFT);
+				}
+			} else {
+				$opcode = array_search($command, $this->opcodes);
+				if (strlen($opcode)==3) {
+					$this->intermediate[] = $opcode;
+				} else {
+					$this->intermediate[] = $opcode . "%$right%";	
+				}
 			}
 
-			$intermediate[] = "2%$right%";
-			$memLocation++;
-		}
-
-		if (stristr($row," STA ")!==false) {
-			$left = trim(substr($row,0,stripos($row," STA ")));
-			$right = trim(substr($row,stripos($row," STA ")+5,strlen($row)));
-			if ($left!="") {
-				$memoryMapper[$left] = $memLocation;
-			}
-
-			$intermediate[] = "3%$right%";
-			$memLocation++;
-		}
-
-		if (stristr($row," LDA ")!==false) {
-			$left = trim(substr($row,0,stripos($row," LDA ")));
-			$right = trim(substr($row,stripos($row," LDA ")+5,strlen($row)));
-			if ($left!="") {
-				$memoryMapper[$left] = $memLocation;
-			}
-
-			$intermediate[] = "5%$right%";
-			$memLocation++;
-		}
-
-		if (stristr($row," BRA ")!==false) {
-			$left = trim(substr($row,0,stripos($row," BRA ")));
-			$right = trim(substr($row,stripos($row," BRA ")+5,strlen($row)));
-			if ($left!="") {
-				$memoryMapper[$left] = $memLocation;
-			}
-
-			$intermediate[] = "6%$right%";
-			$memLocation++;
-		}
-
-		if (stristr($row," BRZ ")!==false) {
-			$left = trim(substr($row,0,stripos($row," BRZ ")));
-			$right = trim(substr($row,stripos($row," BRZ ")+5,strlen($row)));
-			if ($left!="") {
-				$memoryMapper[$left] = $memLocation;
-			}
-
-			$intermediate[] = "7%$right%";
-			$memLocation++;
-		}
-
-		if (stristr($row," BRP ")!==false) {
-			$left = trim(substr($row,0,stripos($row," BRP ")));
-			$right = trim(substr($row,stripos($row," BRP ")+5,strlen($row)));
-			if ($left!="") {
-				$memoryMapper[$left] = $memLocation;
-			}
-
-			$intermediate[] = "8%$right%";
-			$memLocation++;
-		}
-
-		if (stristr($row," INP ")!==false) {
-			$left = trim(substr($row,0,stripos($row," INP ")));
-			if ($left!="") {
-				$memoryMapper[$left] = $memLocation;
-			}
-
-			$intermediate[] = "901";
-			$memLocation++;
-
-		}
-
-		if (stristr($row," OUT ")!==false) {
-			$left = trim(substr($row,0,stripos($row," OUT ")));
-			if ($left!="") {
-				$memoryMapper[$left] = $memLocation;
-			}
-
-			$intermediate[] = "902";
-			$memLocation++;
-		}
-
-		if (stristr($row," DAT ")!==false) {
-			$left = trim(substr($row,0,stripos($row," DAT ")));
-			$right = trim(substr($row,stripos($row," DAT ")+5,strlen($row)));
-			if ($left!="") {
-				// This will make a limitation where the line labels and vars cannot overlap
-				$memoryMapper[$left] = $memLocation;
-				$intermediate[] = str_pad($right,3,"0",STR_PAD_LEFT);
-			}
-			$memLocation++;
+			$this->address++;
 		}
 	}
 
-	/*
-		Uncomment these to see the memory mapper, which will contain label to memory location (without leading zeros).
-		Also, it will show the intermediate code before symbol replacement, as a start to outputting machine code.
-	*/
-	//print_r($memoryMapper);
-	//print_r($intermediate);
+	public function assemble($assembly) {
+		$assembly = explode("\n",$assembly);
 
-	
-	// Replace labels / symbols (vars & line labels) with memory locations
-	foreach ($intermediate as $row) {
-		foreach ($memoryMapper as $k => $v) {
-			// Case insensitive, I'm fine with introducing this limitation
-			$row = str_ireplace("%$k%",str_pad($v,2,"0",STR_PAD_LEFT),$row);
+		foreach ($assembly as $row) {
+			$row = explode("//",$row);
+			$row = " " . str_replace("\t"," ",$row[0]) . " ";
+			foreach ($this->opcodes as $k => $v) {
+				$this->checkRow($row,$v);
+			}
+			$this->checkRow($row,"DAT"); // Not an opcode, but a weird LMC construct for assemblers
 		}
-		$out[] = $row;
+
+		if ($this->debug) {
+			print_r($this->memoryMap);
+			print_r($this->intermediate);
+		}
+
+		foreach ($this->intermediate as $row) {
+			foreach ($this->memoryMap as $k => $v) {
+				// Case insensitive, I'm fine with introducing this limitation
+				$row = str_ireplace("%$k%",str_pad($v,2,"0",STR_PAD_LEFT),$row);
+			}
+			$out[] = $row;
+		}
+		return $out;
 	}
-	return $out;
 }
