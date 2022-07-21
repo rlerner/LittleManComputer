@@ -40,3 +40,22 @@ There are limitations of the machine I won't go into here, but I will call out a
 ## Samples
 The sample programs are not mine, but they're not complex at all and I feel like they wouldn't meet the [Threshold of Originality](https://en.wikipedia.org/wiki/Threshold_of_originality) anyway. Plus, making something that runs my own code only would be arrogant and not test me at all. Overall, the language is pretty easy, if you can work with my [Brainfuck Interpreter](https://github.com/rlerner/BrainFuckInterpreter), this should be easier.
 
+
+## Instruction Set
+Machine Code  | Mnemonic | What it does | Example Assembly
+------------- | ------------- | - | - |
+000  | BRK | Stops program execution | BRK
+1xx  | ADD | Add value at RAM xx to accumulator | line ADD var1
+2xx  | SUB | Subtract value at ram XX from the accumulator | line SUB var1
+3xx  | STA | Copies the value in the accumulator to RAM at xx | STA var1
+5xx  | LDA | Set the value of the accumulator to the value in RAM at xx | LDA var1
+6xx  | BRA | Unconditionally branch to the memory location XX (set PC to XX) | BRA line
+7xx  | BRZ | If the accumulator is zero, branch to memory location XX (set PC to XX) | BRZ line
+8xx  | BRP | If the accumulator is positive, branch to memory location XX (set PC to XX) | BRP line
+901 | INP | Read an input value and set to the accumulator | INP
+902 | OUT | Read the value in the accumulator and output | OUT
+
+
+
+
+
