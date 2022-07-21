@@ -29,6 +29,7 @@ I picked the LMC for a few reasons:
  - Unlike my [Brainfuck Interpreter](https://github.com/rlerner/BrainFuckInterpreter) (yes, that's what the language is called), which only puts out numbers and translates it to ASCII codes, this only outputs numbers, so no character tables are needed. You can implement it though, because here's the code.
  - Extremely spacious memory (compared to BF) of 100 cells for program + data. I know that's not great, but I wanted it to work with existing LMC code instead if inventing a new system based on LMC that supports more.
  - Overflow is simply not allowed (anything <0 or >999). Some simulators online allow it, but I stuck with not allowing it. As I type this I realize I don't think I limited the boundary of negative numbers in RAM. Whoops.
+ - Also no floating point.
 
 ## Limitations
 There are limitations of the machine I won't go into here, but I will call out a few for my assembler. These were design decisions that are easy to change if you care to:
