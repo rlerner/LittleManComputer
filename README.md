@@ -39,7 +39,17 @@ There are limitations of the machine I won't go into here, but I will call out a
 
 
 ## Samples
-The sample programs are not mine, but they're not complex at all and I feel like they wouldn't meet the [Threshold of Originality](https://en.wikipedia.org/wiki/Threshold_of_originality) anyway. Plus, making something that runs my own code only would be arrogant and not test me at all. Overall, the language is pretty easy, if you can work with my [Brainfuck Interpreter](https://github.com/rlerner/BrainFuckInterpreter), this should be easier.
+Some of the sample programs are not mine, but they're not complex at all and I feel like they wouldn't meet the [Threshold of Originality](https://en.wikipedia.org/wiki/Threshold_of_originality) anyway. Plus, making something that runs my own code only would be arrogant and not test me at all. Overall, the language is pretty easy, if you can work with my [Brainfuck Interpreter](https://github.com/rlerner/BrainFuckInterpreter), this should be easier.
+
+The multiply and compare ones are mine. I had a multiply one in here but it wasn't efficient in some situations, imagine this:
+ - What is 5*20?
+ 
+ -- 5 +5 +5 +5 +5 +5 +5 +5 +5 +5 +5 +5 +5 +5 +5 +5 +5 +5 +5 +5
+ 
+ -- or
+ 
+ -- 20+20+20+20+20
+ 
 
 
 ## Instruction Set
